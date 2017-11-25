@@ -1,0 +1,205 @@
+
+# ##############################################################################
+# Created by Base System Builder Wizard for Xilinx EDK 14.7 Build EDK_P.20131013
+# Mon Nov 13 00:46:17 2017
+# Target Board:  Custom
+# Family:    spartan6
+# Device:    xc6slx9
+# Package:   tqg144
+# Speed Grade:  -2
+# ##############################################################################
+ PARAMETER VERSION = 2.1.0
+
+
+ PORT rstbt = RESET, DIR = I, SIGIS = RST, RST_POLARITY = 0
+ PORT clk50M = CLK, DIR = I, SIGIS = CLK, CLK_FREQ = 50000000
+ PORT o_spi_mosi = lcd_spi_0_o_spi_mosi, DIR = O
+ PORT o_spi_miso = lcd_spi_0_o_spi_miso, DIR = O
+ PORT o_spi_sck = lcd_spi_0_o_spi_sck, DIR = O
+ PORT o_spi_ss_n = lcd_spi_0_o_spi_ss_n, DIR = O
+ PORT cpld_jtagen = logsys_axi_sp6_simpleio_0_cpld_jtagen, DIR = O
+ PORT cpld_rstn = logsys_axi_sp6_simpleio_0_cpld_rstn, DIR = O
+ PORT cpld_clk = logsys_axi_sp6_simpleio_0_cpld_clk, DIR = O
+ PORT cpld_load = logsys_axi_sp6_simpleio_0_cpld_load, DIR = O
+ PORT cpld_mosi = logsys_axi_sp6_simpleio_0_cpld_mosi, DIR = O
+ PORT cpld_miso = logsys_axi_sp6_simpleio_0_cpld_miso, DIR = I
+ PORT bt = net_logsys_axi_sp6_simpleio_0_btn_in_pin, DIR = I, VEC = [2:0]
+ PORT spi_sdcard_csn = net_vcc, DIR = O, SIGIS = NONE
+ PORT spi_flash_csn = net_vcc, DIR = O, SIGIS = NONE
+ PORT sram_csn = net_vcc, DIR = O, SIGIS = NONE
+ PORT sdram_csn = net_vcc, DIR = O, SIGIS = NONE
+
+
+# PORT logsys_axi_sp6_simpleio_0_btn_in_pin = logsys_axi_sp6_simpleio_0_btn_in, DIR = I, VEC = [2:0]
+BEGIN proc_sys_reset
+ PARAMETER INSTANCE = proc_sys_reset_0
+ PARAMETER HW_VER = 3.00.a
+ PARAMETER C_EXT_RESET_HIGH = 0
+ PORT MB_Debug_Sys_Rst = proc_sys_reset_0_MB_Debug_Sys_Rst
+ PORT Dcm_locked = proc_sys_reset_0_Dcm_locked
+ PORT MB_Reset = proc_sys_reset_0_MB_Reset
+ PORT Slowest_sync_clk = clk_50_0000MHz
+ PORT Interconnect_aresetn = proc_sys_reset_0_Interconnect_aresetn
+ PORT Ext_Reset_In = RESET
+ PORT BUS_STRUCT_RESET = proc_sys_reset_0_BUS_STRUCT_RESET
+END
+
+BEGIN lmb_v10
+ PARAMETER INSTANCE = microblaze_0_ilmb
+ PARAMETER HW_VER = 2.00.b
+ PORT SYS_RST = proc_sys_reset_0_BUS_STRUCT_RESET
+ PORT LMB_CLK = clk_50_0000MHz
+END
+
+BEGIN lmb_bram_if_cntlr
+ PARAMETER INSTANCE = microblaze_0_i_bram_ctrl
+ PARAMETER HW_VER = 3.10.c
+ PARAMETER C_BASEADDR = 0x00000000
+ PARAMETER C_HIGHADDR = 0x00007fff
+ BUS_INTERFACE SLMB = microblaze_0_ilmb
+ BUS_INTERFACE BRAM_PORT = microblaze_0_i_bram_ctrl_2_microblaze_0_bram_block
+END
+
+BEGIN lmb_v10
+ PARAMETER INSTANCE = microblaze_0_dlmb
+ PARAMETER HW_VER = 2.00.b
+ PORT SYS_RST = proc_sys_reset_0_BUS_STRUCT_RESET
+ PORT LMB_CLK = clk_50_0000MHz
+END
+
+BEGIN lmb_bram_if_cntlr
+ PARAMETER INSTANCE = microblaze_0_d_bram_ctrl
+ PARAMETER HW_VER = 3.10.c
+ PARAMETER C_BASEADDR = 0x00000000
+ PARAMETER C_HIGHADDR = 0x00007fff
+ BUS_INTERFACE SLMB = microblaze_0_dlmb
+ BUS_INTERFACE BRAM_PORT = microblaze_0_d_bram_ctrl_2_microblaze_0_bram_block
+END
+
+BEGIN bram_block
+ PARAMETER INSTANCE = microblaze_0_bram_block
+ PARAMETER HW_VER = 1.00.a
+ BUS_INTERFACE PORTA = microblaze_0_i_bram_ctrl_2_microblaze_0_bram_block
+ BUS_INTERFACE PORTB = microblaze_0_d_bram_ctrl_2_microblaze_0_bram_block
+END
+
+BEGIN microblaze
+ PARAMETER INSTANCE = microblaze_0
+ PARAMETER HW_VER = 8.50.c
+ PARAMETER C_INTERCONNECT = 2
+ PARAMETER C_USE_BARREL = 1
+ PARAMETER C_USE_FPU = 0
+ PARAMETER C_DEBUG_ENABLED = 1
+ PARAMETER C_ICACHE_BASEADDR = 0xbd908000
+ PARAMETER C_ICACHE_HIGHADDR = 0xbd90ffff
+ PARAMETER C_USE_ICACHE = 0
+ PARAMETER C_CACHE_BYTE_SIZE = 8192
+ PARAMETER C_ICACHE_ALWAYS_USED = 1
+ PARAMETER C_DCACHE_BASEADDR = 0xbd908000
+ PARAMETER C_DCACHE_HIGHADDR = 0xbd90ffff
+ PARAMETER C_USE_DCACHE = 0
+ PARAMETER C_DCACHE_BYTE_SIZE = 8192
+ PARAMETER C_DCACHE_ALWAYS_USED = 1
+ BUS_INTERFACE M_AXI_DP = axi4lite_0
+ BUS_INTERFACE DEBUG = microblaze_0_debug
+ BUS_INTERFACE INTERRUPT = microblaze_0_intc_INTERRUPT
+ BUS_INTERFACE DLMB = microblaze_0_dlmb
+ BUS_INTERFACE ILMB = microblaze_0_ilmb
+ PORT MB_RESET = proc_sys_reset_0_MB_Reset
+ PORT CLK = clk_50_0000MHz
+END
+
+BEGIN mdm
+ PARAMETER INSTANCE = debug_module
+ PARAMETER HW_VER = 2.10.a
+ PARAMETER C_INTERCONNECT = 2
+ PARAMETER C_USE_UART = 1
+ PARAMETER C_BASEADDR = 0x41400000
+ PARAMETER C_HIGHADDR = 0x4140ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ BUS_INTERFACE MBDEBUG_0 = microblaze_0_debug
+ PORT Debug_SYS_Rst = proc_sys_reset_0_MB_Debug_Sys_Rst
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT Interrupt = debug_module_Interrupt
+END
+
+BEGIN clock_generator
+ PARAMETER INSTANCE = clock_generator_0
+ PARAMETER HW_VER = 4.03.a
+ PARAMETER C_EXT_RESET_HIGH = 0
+ PARAMETER C_CLKIN_FREQ = 50000000
+ PARAMETER C_CLKOUT0_FREQ = 50000000
+ PARAMETER C_CLKOUT0_GROUP = NONE
+ PORT LOCKED = proc_sys_reset_0_Dcm_locked
+ PORT CLKOUT0 = clk_50_0000MHz
+ PORT RST = RESET
+ PORT CLKIN = CLK
+END
+
+BEGIN axi_timer
+ PARAMETER INSTANCE = axi_timer_0
+ PARAMETER HW_VER = 1.03.a
+ PARAMETER C_COUNT_WIDTH = 32
+ PARAMETER C_ONE_TIMER_ONLY = 0
+ PARAMETER C_BASEADDR = 0x41c00000
+ PARAMETER C_HIGHADDR = 0x41c0ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT Interrupt = axi_timer_0_Interrupt
+END
+
+BEGIN axi_interconnect
+ PARAMETER INSTANCE = axi4lite_0
+ PARAMETER HW_VER = 1.06.a
+ PARAMETER C_INTERCONNECT_CONNECTIVITY_MODE = 0
+ PORT INTERCONNECT_ARESETN = proc_sys_reset_0_Interconnect_aresetn
+ PORT INTERCONNECT_ACLK = clk_50_0000MHz
+END
+
+BEGIN axi_intc
+ PARAMETER INSTANCE = microblaze_0_intc
+ PARAMETER HW_VER = 1.04.a
+ PARAMETER C_IRQ_IS_LEVEL = 1
+ PARAMETER C_BASEADDR = 0x41200000
+ PARAMETER C_HIGHADDR = 0x4120ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ BUS_INTERFACE INTERRUPT = microblaze_0_intc_INTERRUPT
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT Intr = lcd_spi_0_o_irq & axi_timer_0_Interrupt & debug_module_Interrupt & logsys_axi_sp6_simpleio_0_irq
+END
+
+# PORT Processor_clk = microblaze_0_intc_Processor_clk
+BEGIN lcd_spi
+ PARAMETER INSTANCE = lcd_spi_0
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_INTERCONNECT_S_AXI_AR_REGISTER = 7
+ PARAMETER C_BASEADDR = 0x7b200000
+ PARAMETER C_HIGHADDR = 0x7b20ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT o_spi_mosi = lcd_spi_0_o_spi_mosi
+ PORT o_spi_miso = lcd_spi_0_o_spi_miso
+ PORT o_spi_sck = lcd_spi_0_o_spi_sck
+ PORT o_spi_ss_n = lcd_spi_0_o_spi_ss_n
+ PORT o_irq = lcd_spi_0_o_irq
+END
+
+BEGIN logsys_axi_sp6_simpleio
+ PARAMETER INSTANCE = logsys_axi_sp6_simpleio_0
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_GPIO_ENABLE = 0
+ PARAMETER C_BASEADDR = 0x7a800000
+ PARAMETER C_HIGHADDR = 0x7a80ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT cpld_jtagen = logsys_axi_sp6_simpleio_0_cpld_jtagen
+ PORT cpld_rstn = logsys_axi_sp6_simpleio_0_cpld_rstn
+ PORT cpld_clk = logsys_axi_sp6_simpleio_0_cpld_clk
+ PORT cpld_load = logsys_axi_sp6_simpleio_0_cpld_load
+ PORT cpld_mosi = logsys_axi_sp6_simpleio_0_cpld_mosi
+ PORT cpld_miso = logsys_axi_sp6_simpleio_0_cpld_miso
+ PORT btn_in = net_logsys_axi_sp6_simpleio_0_btn_in_pin
+ PORT irq = logsys_axi_sp6_simpleio_0_irq
+ PORT sw_out = logsys_axi_sp6_simpleio_0_sw_out
+END
+
