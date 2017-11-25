@@ -73,14 +73,16 @@ int init_lcd [] = {	0x40, 	// Fuggoleges gorgetes		Az elso megjelenitett sor a 0
 					0x10,	// VEV beallitas			A kontraszt beallitasa
 					0xFA,	// APC0 regiszter irasa		Homerseklet kompenzacio
 					0x90,	// APC0 regiszter irasa		Homerseklet kompenzacio
-					0xAF	// Kijelzo engedelyezes		A megjelenites bekapcsolasa
+					0xAF,	// Kijelzo engedelyezes		A megjelenites bekapcsolasa
+					0x00
 					};
 
 void print(char *str);
 
-void LCD_wr(int data);
-void lcd_data(uint8_t data);
-void lcd_command(uint8_t cmd);
+
+void lcd_cntrl(int cntrl);
+void lcd_data(int data);
+void lcd_command(int cmd);
 void lcd_sel();
 void lcd_desel();
 
@@ -88,51 +90,69 @@ int main()
 {
     init_platform();
 
-    print("Hello World\n\r");
 
+
+    lcd_cntrl(0x00);
+
+    int i;
+
+    for(i=0; init_lcd[i] != 0; i++){
+    	lcd_command(init_lcd[i]);
+    }
+
+    lcd_command(0xA5);
+
+    while(1);
     return 0;
 }
 
-void lcd_data(uint8_t data) {
-	int out = data;
 
-	data = data | CMDn_DAT(1)
-
-
-
-  LCD_SELECT();
-  LCD_DRAM();
-  spi_write(data);
-  LCD_UNSELECT();
-  lcd_inc_column(1);
-  }
 
 /******************************************************************************
  * Writes one command byte
  * cmd           - the command byte
  */
+
+void lcd_cntrl(int cntrl) {
+	int reg;
+	do {
+	reg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR);
+	} while (reg & BUSY_REG(1)); // Check busy flag
+	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR) = (cntrl | SS_REG(1) | GLOBAL_EN(1));
+}
+
 void lcd_command(int cmd) {
-	int reg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR);
-  LCD_SELECT();
-  LCD_CMD();
-  spi_write(cmd);
-  LCD_UNSELECT();
+	int reg;
+	do {
+	reg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR);
+	} while (reg & BUSY_REG(1)); // Check busy flag
+	cmd = cmd & (~CMDn_DAT(1));
+	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR) = cmd;
   }
 
-void lcd_sel(){
+void lcd_data(int data) {
+	int reg;
+	do {
+	reg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR);
+	} while (reg & BUSY_REG(1)); // Check busy flag
+	data = data | CMDn_DAT(1);
+	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR) = data;
+  }
+
+void lcd_sel() {
 
 	// TODO : check busy bit
-
-	int cfg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR)
-	cfg = cfq | SS_REG(l);
+	int cfg;
+	cfg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR);
+	cfg = cfg | SS_REG(1);
 	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR) = cfg;
 }
 
-void lcd_desel(){
+void lcd_desel() {
 
 	// TODO : check busy bit
-
-	int cfg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR)
-	cfg = cfq & SS_REG(0);
+	int cfg;
+	cfg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR);
+	cfg = cfg & SS_REG(0);
 	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR) = cfg;
 }

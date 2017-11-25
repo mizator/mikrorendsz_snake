@@ -16,8 +16,8 @@ NET rstbt  LOC=P67 | IOSTANDARD=LVCMOS33 | PULLUP | TIG;
 
 
 # A LOGSYS fejlesztõi port vonalai.
-#NET dev_mosi       LOC=P104 | IOSTANDARD=LVCMOS33;
-#NET dev_miso       LOC=P144 | IOSTANDARD=LVCMOS33; 
+NET dev_mosi       LOC=P104 | IOSTANDARD=LVCMOS33;
+NET dev_miso       LOC=P144 | IOSTANDARD=LVCMOS33; 
 #NET dev_clk        LOC=P95  | IOSTANDARD=LVCMOS33; 
 #NET dev_rst        LOC=P94  | IOSTANDARD=LVCMOS33;
 

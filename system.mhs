@@ -28,6 +28,8 @@
  PORT spi_flash_csn = net_vcc, DIR = O, SIGIS = NONE
  PORT sram_csn = net_vcc, DIR = O, SIGIS = NONE
  PORT sdram_csn = net_vcc, DIR = O, SIGIS = NONE
+ PORT dev_mosi = RS232_RX_pin, DIR = I
+ PORT dev_miso = RS232_TX_pin, DIR = O
 
 
 # PORT logsys_axi_sp6_simpleio_0_btn_in_pin = logsys_axi_sp6_simpleio_0_btn_in, DIR = I, VEC = [2:0]
@@ -165,7 +167,7 @@ BEGIN axi_intc
  BUS_INTERFACE S_AXI = axi4lite_0
  BUS_INTERFACE INTERRUPT = microblaze_0_intc_INTERRUPT
  PORT S_AXI_ACLK = clk_50_0000MHz
- PORT Intr = lcd_spi_0_o_irq & axi_timer_0_Interrupt & debug_module_Interrupt & logsys_axi_sp6_simpleio_0_irq
+ PORT Intr = lcd_spi_0_o_irq & axi_timer_0_Interrupt & debug_module_Interrupt & logsys_axi_sp6_simpleio_0_irq & RS232_Interrupt
 END
 
 # PORT Processor_clk = microblaze_0_intc_Processor_clk
@@ -201,5 +203,19 @@ BEGIN logsys_axi_sp6_simpleio
  PORT btn_in = net_logsys_axi_sp6_simpleio_0_btn_in_pin
  PORT irq = logsys_axi_sp6_simpleio_0_irq
  PORT sw_out = logsys_axi_sp6_simpleio_0_sw_out
+END
+
+BEGIN axi_uartlite
+ PARAMETER INSTANCE = RS232
+ PARAMETER HW_VER = 1.02.a
+ PARAMETER C_BAUDRATE = 115200
+ PARAMETER C_ODD_PARITY = 1
+ PARAMETER C_BASEADDR = 0x40600000
+ PARAMETER C_HIGHADDR = 0x4060ffff
+ BUS_INTERFACE S_AXI = axi4lite_0
+ PORT S_AXI_ACLK = clk_50_0000MHz
+ PORT TX = RS232_TX_pin
+ PORT RX = RS232_RX_pin
+ PORT Interrupt = RS232_Interrupt
 END
 
