@@ -1,0 +1,9 @@
+/*
+!.gitignore
+!system.mhs
+
+!/SDK/HF/Snake_SW/src/lcd_lib/
+!/SDK/HF/Snake_SW/src/
+!/pcores/
+
+!/data/

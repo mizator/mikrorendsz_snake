@@ -1,0 +1,9 @@
+-batch 
+-create lcd_spi 
+-ver 1.00.a 
+-dir "D:\Programok\Work\FPGA\Work\MR_LCD_SPI\MB" 
+-lang verilog 
+-bus axi4lite s 
+-reg 2 
+-xps 
+-driver 
