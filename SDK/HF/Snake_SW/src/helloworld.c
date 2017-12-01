@@ -37,6 +37,7 @@
 #include <xtmrctr_l.h>
 #include <mb_interface.h>
 #include "platform.h"
+#include "lcd_lib/lcd_lib.h"
 //#include <dogm-graphic.h>
 
 #define MEM8(addr)   (*(volatile unsigned char *)(addr))
@@ -61,21 +62,7 @@
 #define BUSY_REG(bit)	(bit << 9)
 #define CMDn_DAT(bit)	(bit << 8)
 
-int init_lcd [] = {	0x40, 	// Fuggoleges gorgetes		Az elso megjelenitett sor a 0
-					0xA0, 	// SEG irany beallitas		Normal iranyu oszlopcimzes
-					0xC8,	// COM irany beallitas		Forditott iranyu sorcimzes
-					0xA4,	// Minden pixel be 			Az SRAM tartalom megjelenitese
-					0xA6,	// Inverz kijelzes 			Az inverz megjelenites tiltasa
-					0xA2,	// LCD bias beallitas		1/9 LCD bias
-					0x2F,	// Tapellatas vezerles		A tapellatas bekapcsolasa
-					0x27,	// Tapellatas vezerles		A kontraszt beallitasa
-					0x81,	// VEV beallitas			A kontraszt beallitasa
-					0x10,	// VEV beallitas			A kontraszt beallitasa
-					0xFA,	// APC0 regiszter irasa		Homerseklet kompenzacio
-					0x90,	// APC0 regiszter irasa		Homerseklet kompenzacio
-					0xAF,	// Kijelzo engedelyezes		A megjelenites bekapcsolasa
-					0x00
-					};
+
 
 void print(char *str);
 
@@ -92,67 +79,15 @@ int main()
 
 
 
-    lcd_cntrl(0x00);
+    LcdInit();
+    LcdCmd(0xA5);
 
-    int i;
 
-    for(i=0; init_lcd[i] != 0; i++){
-    	lcd_command(init_lcd[i]);
-    }
 
-    lcd_command(0xA5);
+
 
     while(1);
     return 0;
 }
 
 
-
-/******************************************************************************
- * Writes one command byte
- * cmd           - the command byte
- */
-
-void lcd_cntrl(int cntrl) {
-	int reg;
-	do {
-	reg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR);
-	} while (reg & BUSY_REG(1)); // Check busy flag
-	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR) = (cntrl | SS_REG(1) | GLOBAL_EN(1));
-}
-
-void lcd_command(int cmd) {
-	int reg;
-	do {
-	reg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR);
-	} while (reg & BUSY_REG(1)); // Check busy flag
-	cmd = cmd & (~CMDn_DAT(1));
-	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR) = cmd;
-  }
-
-void lcd_data(int data) {
-	int reg;
-	do {
-	reg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR);
-	} while (reg & BUSY_REG(1)); // Check busy flag
-	data = data | CMDn_DAT(1);
-	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPISR) = data;
-  }
-
-void lcd_sel() {
-
-	// TODO : check busy bit
-	int cfg;
-	cfg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR);
-	cfg = cfg | SS_REG(1);
-	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR) = cfg;
-}
-
-void lcd_desel() {
-
-	// TODO : check busy bit
-	int cfg;
-	cfg = MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR);
-	cfg = cfg & SS_REG(0);
-	MEM32(XPAR_LCD_SPI_0_BASEADDR + SPICR) = cfg;
-}
