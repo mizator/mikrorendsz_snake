@@ -15,11 +15,6 @@
 #include <xparameters.h>
 #include <inttypes.h>
 
-#define MEM8(addr)   (*(volatile unsigned char *)(addr))
-#define MEM16(addr)  (*(volatile unsigned short *)(addr))
-#define MEM32(addr)  (*(volatile unsigned long *)(addr))
-
-
 void LcdBusy(void){
 	uint32_t reg;
 	do{
@@ -60,15 +55,23 @@ void LcdDeSelect(void){
 	uint32_t cfg;
 	LcdBusy();
 	cfg = LCD_CONTROLREG;
-	cfg = cfg & (~CMDn_DAT(1));
+	cfg = cfg & (~SS_REG(1));
 	LCD_CONTROLREG = cfg;
 }
 
-void LcdEn(void){
+void LcdEnable(void){
 	uint32_t cfg;
 	LcdBusy();
 	cfg = LCD_CONTROLREG;
 	cfg = cfg | GLOBAL_EN(1);
+	LCD_CONTROLREG = cfg;
+}
+
+void LcdDisable(void){
+	uint32_t cfg;
+	LcdBusy();
+	cfg = LCD_CONTROLREG;
+	cfg = cfg & (~GLOBAL_EN(1));
 	LCD_CONTROLREG = cfg;
 }
 
@@ -103,6 +106,10 @@ void LcdReset(void){
 	LcdCmd(LCD_RESET_CMD);
 }
 
+void LcdSetFirstLine(uint8_t line){
+	LcdCmd(LCD_START_LINE | ((line) & 0x3F))
+}
+
 void LcdSetColumnAddress(uint8_t col){
 	LcdCmd(LCD_COL_ADDRESS_MSB | ((col>>4) & 0x0F));
 	LcdCmd(LCD_COL_ADDRESS_LSB | ((col) & 0x0F));
@@ -112,7 +119,33 @@ void LcdSetPageAddress(uint8_t page){
  	LcdCmd(LCD_PAGE_ADDRESS | ((page) & 0x0F));
 }
 
-void LCDGoToXY(uint8_t col, uint8_t page){
-	LcdSetColumnAddress(col);
+void LcdGoToXY(uint8_t col, uint8_t page){
+	LcdSetColumnAddress(0x1e + col);
 	LcdSetPageAddress(page);
+}
+
+
+void LcdArrayOut(uint8_t *data){
+	uint8_t page, col;
+
+	for(page = 0; page < LCD_PAGENUM; page++){
+		for(col = 0; col < LCD_WIDTH;col++){
+			LCDGoToXY(col,page);
+			LcdData(data[page*LCD_WIDTH + col]);
+		}
+	}
+}
+
+void LcdArrayConv(uint8_t *data){
+	uint8_t x,y,b;
+	uint8_t lcd_array[LCD_WIDTH*LCD_PAGENUM];
+
+	for(y = 0; y < LCD_HEIGHT; y++){
+		for(x = 0; x < LCD_WIDTH; x++){
+			for(b = 0; b < 8; b++){
+				lcd_array[(y/8)*LCD_WIDTH + x] |= (data[(y/8)*b*LCD_WIDTH+x]?1:0)<<b;
+			}
+		}
+	}
+	LcdArrayOut(lcd_array);
 }
