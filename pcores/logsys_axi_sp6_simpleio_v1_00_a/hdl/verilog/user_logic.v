@@ -15,7 +15,7 @@ module user_logic #(
    parameter C_GPIO_WIDTH         = 13,
    
    //Bus protocol parameters.
-   parameter C_S_AXI_ACLK_FREQ_HZ = 50000000,
+   parameter C_S_AXI_ACLK_FREQ_HZ = 100000000,
    parameter C_SLV_DWIDTH         = 32,
    parameter C_NUM_REG            = 4
 ) (

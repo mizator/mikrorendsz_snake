@@ -2,8 +2,12 @@
 !.gitignore
 !system.mhs
 
+!/SDK/HF/Snake_SW/src/io_lib/
 !/SDK/HF/Snake_SW/src/lcd_lib/
 !/SDK/HF/Snake_SW/src/
 !/pcores/
 
 !/data/
+SDK/HF/Snake_SW/src/lcd_lib/lcd_lib.c
+SDK/HF/Snake_SW/src/lcd_lib/lcd_lib.c
+SDK/HF/Snake_SW/src/lcd_lib/lcd_lib.c

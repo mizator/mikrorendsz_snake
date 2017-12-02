@@ -1,7 +1,7 @@
 ##############################################################################
-## Filename:          C:/mikrorendszerek/GA/pcores/logsys_axi_sp6_simpleio_v1_00_a/data/logsys_axi_sp6_simpleio_v2_1_0.pao
+## Filename:          F:/Logsys/SP6BoardLinuxAXI/pcores/logsys_axi_sp6_simpleio_v1_00_a/data/logsys_axi_sp6_simpleio_v2_1_0.pao
 ## Description:       Peripheral Analysis Order
-## Date:              Sat Nov 25 16:36:30 2017 (by Create and Import Peripheral Wizard)
+## Date:              Tue Dec 31 17:54:19 2013 (by Create and Import Peripheral Wizard)
 ##############################################################################
 
 lib proc_common_v3_00_a  all 

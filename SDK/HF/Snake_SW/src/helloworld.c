@@ -38,51 +38,97 @@
 #include <mb_interface.h>
 #include "platform.h"
 #include "lcd_lib/lcd_lib.h"
+#include "io_lib/io_lib.h"
 //#include <dogm-graphic.h>
-
-#define MEM8(addr)   (*(volatile unsigned char *)(addr))
-#define MEM16(addr)  (*(volatile unsigned short *)(addr))
-#define MEM32(addr)  (*(volatile unsigned long *)(addr))
 
 #define TRUE 1
 #define FALSE 0
 
-//	SPI CONTROL REGISTER
-//	[ SS_reg [11] | Global EN [10] | Interrupt EN [9] | Interrupt Clear [8] | Baudrate [7:0] ]
-#define SPICR 0x00
-#define SS_REG(bit)		(bit << 11)
-#define GLOBAL_EN(bit)	(bit << 10)
-#define INT_EN(bit)		(bit << 9)
-#define INT_CLR(bit)	(bit << 8)
+volatile uint8_t counter = 0;
 
-//	SPI STATUS
-// [ IRQreg [10] | BUSY reg [9] | LCD CMDn/DATA [8] | Data [7:0] ]
-#define SPISR 0x04
-#define IRQ_REG(bit)	(bit << 10)
-#define BUSY_REG(bit)	(bit << 9)
-#define CMDn_DAT(bit)	(bit << 8)
+void timer_int_handler(void *instance_Ptr)
+{
+	if (counter < 99){
+	counter++;
+	}
+	else {
+		counter = 0;
+	}
 
-
-
-void print(char *str);
-
-
-void lcd_cntrl(int cntrl);
-void lcd_data(int data);
-void lcd_command(int cmd);
-void lcd_sel();
-void lcd_desel();
+	// a megszakítás jelzõbit törlése
+	unsigned long csr;
+	csr = XTmrCtr_GetControlStatusReg(XPAR_AXI_TIMER_0_BASEADDR, 0);
+	XTmrCtr_SetControlStatusReg(XPAR_AXI_TIMER_0_BASEADDR, 0, csr);
+}
 
 int main()
 {
     init_platform();
 
+	//Megszakításkezelõ rutinok regisztrálása
+	XIntc_RegisterHandler(
+			XPAR_MICROBLAZE_0_INTC_BASEADDR,                  	//INTC báziscíme
+			XPAR_MICROBLAZE_0_INTC_AXI_TIMER_0_INTERRUPT_INTR,  //Megszakítás azonosító
+			(XInterruptHandler)timer_int_handler,
+			NULL
+	);
+
+	// megszakítások engedélyezése
+	//A megszakítás vezérlõ konfigurálása.
+	XIntc_MasterEnable(XPAR_MICROBLAZE_0_INTC_BASEADDR);
+	XIntc_EnableIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR,
+			XPAR_AXI_TIMER_0_INTERRUPT_MASK
+	);
+
+	XTmrCtr_SetLoadReg(
+			XPAR_AXI_TIMER_0_BASEADDR,
+			0,
+			XPAR_AXI_TIMER_0_CLOCK_FREQ_HZ / 4
+	);
+
+	XTmrCtr_SetControlStatusReg(
+			XPAR_AXI_TIMER_0_BASEADDR,
+			0,
+			XTC_CSR_INT_OCCURED_MASK |
+			XTC_CSR_LOAD_MASK
+	);
+
+	XTmrCtr_SetControlStatusReg(
+			XPAR_AXI_TIMER_0_BASEADDR,0,
+			XTC_CSR_ENABLE_TMR_MASK |
+			XTC_CSR_ENABLE_INT_MASK |
+			XTC_CSR_AUTO_RELOAD_MASK |
+			XTC_CSR_DOWN_COUNT_MASK
+	);
+
+	//A megszakítások engedélyezése a processzoron.
+	microblaze_enable_interrupts();
+
+    DispW(54);
+
+    NavswR();
+
+
+
+
 
 
     LcdInit();
-    LcdCmd(0xA5);
 
 
+    LCDGoToXY(0,1);
+    LcdData(0x00);
+    uint8_t asd;
+
+    for(asd=0;asd<102;asd++){
+    	LCDGoToXY(asd,1);
+        LcdData(0x00);
+
+    }
+
+ while (1){
+	 DispW(counter);
+    }
 
 
 

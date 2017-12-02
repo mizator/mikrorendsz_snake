@@ -1,6 +1,7 @@
 CipWiz::SetVersion "14.7";
 CipWiz::SetFlow "CREATE";
-CipWiz::SetParameter "ProjectDir" "C:\mikrorendszerek\GA";
+CipWiz::SetParameter "ProjectDir" "F:\Logsys\SP6BoardLinuxAXI";
+CipWiz::SetParameter "IpLongDescription" "Interface peripheral for the simple I/O devices on the LOGSYS Spartan-6 FPGA board (LEDs, seven-segment displays, DIP switch, navigation switch, buttons and GPIO).";
 CipWiz::SetParameter "IpName" "logsys_axi_sp6_simpleio";
 CipWiz::SetParameter "IpVersion" "1.00.a";
 CipWiz::SetParameter "HdlLanguage" "2";
@@ -47,7 +48,7 @@ CipWiz::SetParameter "AXIMasterMaxBurstSize" "0";
 CipWiz::SetParameter "AXIMasterWidthOfPort" "0";
 CipWiz::SetParameter "AXIMasterAddrPipelineDepth" "0";
 CipWiz::SetParameter "NumberOfUserRegister" "3";
-CipWiz::SetParameter "UserRegisterDataWidth" "32";
+CipWiz::SetParameter "UserRegisterDataWidth" "0";
 CipWiz::SetParameter "WriteMode" "0";
 CipWiz::SetParameter "HasInputFSL" "0";
 CipWiz::SetParameter "HasOutputFSL" "0";

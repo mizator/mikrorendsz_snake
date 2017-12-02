@@ -7,7 +7,7 @@ TABLE OF CONTENTS
 ================================================================================
 Peripheral Summary:
 
-  XPS project / EDK repository               : C:\mikrorendszerek\GA
+  XPS project / EDK repository               : F:\Logsys\SP6BoardLinuxAXI
   logical library name                       : logsys_axi_sp6_simpleio_v1_00_a
   top name                                   : logsys_axi_sp6_simpleio
   version                                    : 1.00.a
@@ -81,5 +81,5 @@ proc_common_v3_00_a
 	No documentation for this library
 
 axi_lite_ipif_v1_01_a
-	C:\mikrorendszerek\GA\C:\Xilinx\14.7\ISE_DS\EDK\hw\XilinxProcessorIPLib\pcores\axi_lite_ipif_v1_01_a\doc\axi_lite_ipif_ds765.pdf
+	F:\Logsys\SP6BoardLinuxAXI\E:\Xilinx\14.7\ISE_DS\EDK\hw\XilinxProcessorIPLib\pcores\axi_lite_ipif_v1_01_a\doc\axi_lite_ipif_ds765.pdf
 

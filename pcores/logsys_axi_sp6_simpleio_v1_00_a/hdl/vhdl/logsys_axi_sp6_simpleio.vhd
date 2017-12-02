@@ -35,7 +35,7 @@
 -- Filename:          logsys_axi_sp6_simpleio.vhd
 -- Version:           1.00.a
 -- Description:       Top level design, instantiates library components and user logic.
--- Date:              Sat Nov 25 16:36:30 2017 (by Create and Import Peripheral Wizard)
+-- Date:              Tue Dec 31 17:54:19 2013 (by Create and Import Peripheral Wizard)
 -- VHDL Standard:     VHDL'93
 ------------------------------------------------------------------------------
 -- Naming Conventions:
@@ -112,9 +112,9 @@ entity logsys_axi_sp6_simpleio is
   generic
   (
     -- ADD USER GENERICS BELOW THIS LINE ---------------
-    C_S_AXI_ACLK_FREQ_HZ           : integer              := 50000000;
+    C_S_AXI_ACLK_FREQ_HZ           : integer              := 100000000;
     C_GPIO_ENABLE                  : integer              := 1;
-    C_GPIO_WIDTH                   : integer              := 13;   
+    C_GPIO_WIDTH                   : integer              := 13;
     -- ADD USER GENERICS ABOVE THIS LINE ---------------
 
     -- DO NOT EDIT BELOW THIS LINE ---------------------
@@ -127,7 +127,7 @@ entity logsys_axi_sp6_simpleio is
     C_BASEADDR                     : std_logic_vector     := X"FFFFFFFF";
     C_HIGHADDR                     : std_logic_vector     := X"00000000";
     C_FAMILY                       : string               := "virtex6";
-    C_NUM_REG                      : integer              := 4;
+    C_NUM_REG                      : integer              := 1;
     C_NUM_MEM                      : integer              := 1;
     C_SLV_AWIDTH                   : integer              := 32;
     C_SLV_DWIDTH                   : integer              := 32
@@ -249,7 +249,7 @@ architecture IMP of logsys_axi_sp6_simpleio is
     generic
     (
       -- ADD USER GENERICS BELOW THIS LINE ---------------
-      C_S_AXI_ACLK_FREQ_HZ           : integer              := 50000000;
+      C_S_AXI_ACLK_FREQ_HZ           : integer              := 100000000;
       C_GPIO_ENABLE                  : integer              := 1;
       C_GPIO_WIDTH                   : integer              := 13;
       -- ADD USER GENERICS ABOVE THIS LINE ---------------
