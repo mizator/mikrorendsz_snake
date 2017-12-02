@@ -16,6 +16,10 @@
 
 #include <inttypes.h>
 
+#define MEM8(addr)   (*(volatile unsigned char *)(addr))
+#define MEM16(addr)  (*(volatile unsigned short *)(addr))
+#define MEM32(addr)  (*(volatile unsigned long *)(addr))
+
 //	SPI CONTROL REGISTER
 //	[ SS_reg [11] | Global EN [10] | Interrupt EN [9] | Interrupt Clear [8] | Baudrate [7:0] ]
 #define SPICR 			0x00
@@ -46,6 +50,10 @@
 
 #define LCD_RESET_CMD         0xE2
 
+#define LCD_WIDTH			  102
+#define LCD_HEIGHT			  64
+#define LCD_PAGENUM			  8
+
 void LcdBusy(void);
 uint32_t LcdCntrl(uint32_t cntrl);
 void LcdCmd(uint8_t cmd);
@@ -57,7 +65,10 @@ void LcdReset(void);
 void LcdSetFirstLine(uint8_t line);
 void LcdSetColumnAddress(uint8_t col);
 void LcdSetPageAddress(uint8_t page);
-void LCDGoToXY(uint8_t col, uint8_t page);
-void LcdEn(void);
+void LcdGoToXY(uint8_t col, uint8_t page);
+void LcdEnable(void);
+void LcdDisable(void);
+void LcdArrayOut(uint8_t *data);
+void LcdArrayConv(uint8_t *data);
 
 #endif
