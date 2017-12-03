@@ -15,35 +15,35 @@
 #include <xparameters.h>
 #include <inttypes.h>
 
-void LcdBusy(void){
+inline void LcdBusy(void){
 	uint32_t reg;
 	do{
 		reg = LCD_STATUSREG;
 	} while (reg & BUSY_REG(1)); 					// Check busy flag
 }
 
-uint32_t LcdCntrl(uint32_t cntrl){
+inline uint32_t LcdCntrl(uint32_t cntrl){
 	LcdBusy();
 	if (cntrl != 0)
 		LCD_CONTROLREG = (cntrl);
 	return LCD_CONTROLREG;
 }
 
-void LcdCmd(uint8_t cmd){
+inline void LcdCmd(uint8_t cmd){
 	uint32_t reg;
 	LcdBusy();
 	reg = cmd & (~CMDn_DAT(1));
 	LCD_STATUSREG = reg;
 }
 
-void LcdData(uint8_t data){
+inline void LcdData(uint8_t data){
 	uint32_t reg;
 	LcdBusy();
 	reg = data | CMDn_DAT(1);
 	LCD_STATUSREG = reg;
 }
 
-void LcdSelect(void){
+inline void LcdSelect(void){
 	uint32_t cfg;
 	LcdBusy();
 	cfg = LCD_CONTROLREG;
@@ -51,7 +51,7 @@ void LcdSelect(void){
 	LCD_CONTROLREG = cfg;
 }
 
-void LcdDeSelect(void){
+inline void LcdDeSelect(void){
 	uint32_t cfg;
 	LcdBusy();
 	cfg = LCD_CONTROLREG;
@@ -59,7 +59,7 @@ void LcdDeSelect(void){
 	LCD_CONTROLREG = cfg;
 }
 
-void LcdEnable(void){
+inline void LcdEnable(void){
 	uint32_t cfg;
 	LcdBusy();
 	cfg = LCD_CONTROLREG;
@@ -67,7 +67,7 @@ void LcdEnable(void){
 	LCD_CONTROLREG = cfg;
 }
 
-void LcdDisable(void){
+inline void LcdDisable(void){
 	uint32_t cfg;
 	LcdBusy();
 	cfg = LCD_CONTROLREG;
@@ -93,7 +93,7 @@ void LcdInit(void)
 						0xAF,	// Kijelzo engedelyezes		A megjelenites bekapcsolasa
 						0x00	};
 
-	LcdEn();
+	LcdEnable();
 	LcdSelect();
 
     uint8_t i;
@@ -102,41 +102,45 @@ void LcdInit(void)
     }
 }
 
-void LcdReset(void){
+inline void LcdReset(void){
 	LcdCmd(LCD_RESET_CMD);
 }
 
-void LcdSetFirstLine(uint8_t line){
-	LcdCmd(LCD_START_LINE | ((line) & 0x3F))
+inline void LcdSetFirstLine(uint8_t line){
+	LcdCmd(LCD_START_LINE | ((line) & 0x3F));
 }
 
-void LcdSetColumnAddress(uint8_t col){
+inline void LcdSetColumnAddress(uint8_t col){
 	LcdCmd(LCD_COL_ADDRESS_MSB | ((col>>4) & 0x0F));
 	LcdCmd(LCD_COL_ADDRESS_LSB | ((col) & 0x0F));
 }
 
-void LcdSetPageAddress(uint8_t page){
+inline void LcdSetPageAddress(uint8_t page){
  	LcdCmd(LCD_PAGE_ADDRESS | ((page) & 0x0F));
 }
 
-void LcdGoToXY(uint8_t col, uint8_t page){
+inline void LcdGoToXY(uint8_t col, uint8_t page){
 	LcdSetColumnAddress(0x1e + col);
 	LcdSetPageAddress(page);
 }
 
 
-void LcdArrayOut(uint8_t *data){
+inline void LcdArrayOut(uint8_t *data){
 	uint8_t page, col;
 
 	for(page = 0; page < LCD_PAGENUM; page++){
 		for(col = 0; col < LCD_WIDTH;col++){
-			LCDGoToXY(col,page);
+			LcdGoToXY(col,page);
 			LcdData(data[page*LCD_WIDTH + col]);
 		}
 	}
 }
 
-void LcdArrayConv(uint8_t *data){
+inline void LcdLineOut(uint8_t data, uint8_t page, uint8_t x){
+	LcdGoToXY(x,page);
+	LcdData(data);
+}
+/*void LcdArrayConv(uint8_t *data){
 	uint8_t x,y,b;
 	uint8_t lcd_array[LCD_WIDTH*LCD_PAGENUM];
 
@@ -148,4 +152,50 @@ void LcdArrayConv(uint8_t *data){
 		}
 	}
 	LcdArrayOut(lcd_array);
+}*/
+
+
+
+
+//without framebuffer
+
+/*void LcdArrayConv(uint8_t *data){
+	uint8_t y, x, bit;
+	uint8_t dataout = 0;
+
+	for(y = 0; y < LCD_PAGENUM; y++){
+		for (x = 0; x < LCD_WIDTH; x++){
+			for (bit = 0; bit < 8; bit++){
+				if (data[LCD_WIDTH*8*y+bit*LCD_WIDTH+x]){
+					dataout |= (1 << bit);
+				}
+				else {
+					dataout &= (~(1 << bit));
+				}
+			}
+			LcdLineOut(dataout,y, x);
+		}
+	}
+}*/
+
+
+//with framebuffer
+
+void LcdArrayConv(uint8_t *data, uint8_t *datao){
+	uint8_t y, x, bit;
+	uint8_t dataout = 0;
+
+	for(y = 0; y < LCD_PAGENUM; y++){
+		for (x = 0; x < LCD_WIDTH; x++){
+			for (bit = 0; bit < 8; bit++){
+				if (data[LCD_WIDTH*8*y+bit*LCD_WIDTH+x]){
+					dataout |= (1 << bit);
+				}
+				else {
+					dataout &= (~(1 << bit));
+				}
+			}
+			datao[y*LCD_WIDTH + x] = dataout;
+		}
+	}
 }

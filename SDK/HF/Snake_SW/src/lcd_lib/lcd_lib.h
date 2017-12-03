@@ -16,7 +16,7 @@
 
 #include <inttypes.h>
 
-#define MEM8(addr)   (*(volatile unsigned char *)(addr))
+#define MEM8(addr)   (*(volatile uint8_t *)(addr))
 #define MEM16(addr)  (*(volatile unsigned short *)(addr))
 #define MEM32(addr)  (*(volatile unsigned long *)(addr))
 
@@ -69,6 +69,13 @@ void LcdGoToXY(uint8_t col, uint8_t page);
 void LcdEnable(void);
 void LcdDisable(void);
 void LcdArrayOut(uint8_t *data);
-void LcdArrayConv(uint8_t *data);
+
+//
+void LcdArrayConv(uint8_t *data, uint8_t *datao);
+
+//void LcdArrayConv(uint8_t *data);
+
+//
+inline void LcdLineOut(uint8_t data, uint8_t page, uint8_t x);
 
 #endif

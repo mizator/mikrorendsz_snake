@@ -116,21 +116,39 @@ int main()
     LcdInit();
 
 
-    LCDGoToXY(0,1);
-    LcdData(0x00);
-    uint8_t asd;
+    uint8_t snake[LCD_HEIGHT*LCD_WIDTH];
 
-    for(asd=0;asd<102;asd++){
-    	LCDGoToXY(asd,1);
-        LcdData(0x00);
+    int i;
 
+    for (i=0; i< (LCD_HEIGHT*LCD_WIDTH);i++ ){
+    	snake[i] = 1;
     }
 
- while (1){
-	 DispW(counter);
+    snake[6400]=0;
+
+uint8_t snakemizu[LCD_WIDTH*LCD_PAGENUM];
+
+    LcdArrayConv(snake, snakemizu);
+    LcdArrayOut(snakemizu);
+
+
+   /* uint8_t snake2[LCD_HEIGHT*LCD_WIDTH];
+
+    int i;
+
+    for (i=0; i< (8*LCD_WIDTH);i++ ){
+    	snake2[i] = 0;
+    }
+
+    for (i=0; i<LCD_WIDTH; i++){
+        snake2[3*i]=1;
     }
 
 
+
+    LcdArrayOut(snake2);*/
+
+    while(1) DispW(counter);
 
     while(1);
     return 0;
