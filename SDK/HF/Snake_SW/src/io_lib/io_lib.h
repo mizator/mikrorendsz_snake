@@ -31,7 +31,7 @@
 #define I_NAVSW 	MEM32(XPAR_LOGSYS_AXI_SP6_SIMPLEIO_0_BASEADDR + NAVSWITCH)
 
 #define UP 			0x01
-#define DOWN 		0x01
+#define DOWN 		0x02
 #define RIGHT		0x08
 #define LEFT		0x04
 #define PUSH 		0x10
