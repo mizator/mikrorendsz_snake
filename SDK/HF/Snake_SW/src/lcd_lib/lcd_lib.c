@@ -156,10 +156,9 @@ inline void LcdLineOut(uint8_t data, uint8_t page, uint8_t x){
 
 
 
-
 //without framebuffer
 
-/*void LcdArrayConv(uint8_t *data){
+void LcdArrayConv(uint16_t *data){
 	uint8_t y, x, bit;
 	uint8_t dataout = 0;
 
@@ -176,12 +175,12 @@ inline void LcdLineOut(uint8_t data, uint8_t page, uint8_t x){
 			LcdLineOut(dataout,y, x);
 		}
 	}
-}*/
+}
 
 
 //with framebuffer
 
-void LcdArrayConv(uint8_t *data, uint8_t *datao){
+/*void LcdArrayConv(uint8_t *data, uint8_t *datao){
 	uint8_t y, x, bit;
 	uint8_t dataout = 0;
 
@@ -198,4 +197,4 @@ void LcdArrayConv(uint8_t *data, uint8_t *datao){
 			datao[y*LCD_WIDTH + x] = dataout;
 		}
 	}
-}
+}*/
