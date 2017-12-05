@@ -71,9 +71,9 @@ void LcdDisable(void);
 void LcdArrayOut(uint8_t *data);
 
 //
-//void LcdArrayConv(uint8_t *data, uint8_t *datao);
+void LcdArrayConv(uint8_t *data, uint8_t *datao);
 
-void LcdArrayConv(uint16_t *data);
+//void LcdArrayConv(uint8_t *data);
 
 //
 inline void LcdLineOut(uint8_t data, uint8_t page, uint8_t x);
