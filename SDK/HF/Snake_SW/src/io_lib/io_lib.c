@@ -29,6 +29,17 @@ const unsigned char bin2sevenseg[] = {
 		0x6f
 };
 
+const unsigned char ledtable[] = {
+		0x00,
+		0x01,
+		0x03,
+		0x07,
+		0x0f,
+		0x1f,
+		0x3f,
+		0x7f,
+		0xff
+};
 
 inline void Disp1W(uint8_t dat){
 	O_DISP1 = dat;
@@ -42,6 +53,11 @@ void DispW(uint8_t dat){
 	if (dat>99) dat = 66;
 	Disp2W(bin2sevenseg[dat / 10]);
 	Disp1W(bin2sevenseg[dat % 10]);
+}
+
+void LedW(uint8_t dat){
+	if(dat > 8) dat = 8;
+	O_LED = ledtable[dat];
 }
 
 uint8_t DipswR(void){

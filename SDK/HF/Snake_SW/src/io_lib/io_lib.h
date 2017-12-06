@@ -16,6 +16,7 @@
 
 #include <inttypes.h>
 
+#define LEDREG				0x00 // 8bit W
 #define DISPREG1 			0x01 // 8bit W
 #define DISPREG2 			0x02 // 8bit W
 #define DIPSWITCH 			0x06 // 8bit R
@@ -27,6 +28,7 @@
 
 #define O_DISP1 	MEM8(XPAR_LOGSYS_AXI_SP6_SIMPLEIO_0_BASEADDR + DISPREG1)
 #define O_DISP2 	MEM8(XPAR_LOGSYS_AXI_SP6_SIMPLEIO_0_BASEADDR + DISPREG2)
+#define O_LED		MEM8(XPAR_LOGSYS_AXI_SP6_SIMPLEIO_0_BASEADDR + LEDREG)
 #define I_DIPSW 	MEM32(XPAR_LOGSYS_AXI_SP6_SIMPLEIO_0_BASEADDR + DIPSWITCH)
 #define I_NAVSW 	MEM32(XPAR_LOGSYS_AXI_SP6_SIMPLEIO_0_BASEADDR + NAVSWITCH)
 
@@ -37,11 +39,12 @@
 #define PUSH 		0x10
 
 extern const unsigned char bin2sevenseg[];
-
+extern const unsigned char ledtable[];
 
 void Disp1W(uint8_t datd1);
 void Disp2W(uint8_t datd2);
 void DispW(uint8_t dat);
+void LedW(uint8_t dat);
 uint8_t DipswR(void);
 uint8_t NavswR(void);
 
