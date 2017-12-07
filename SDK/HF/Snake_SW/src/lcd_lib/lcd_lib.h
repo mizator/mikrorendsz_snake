@@ -52,6 +52,7 @@
 
 #define LCD_WIDTH			  102
 #define LCD_HEIGHT			  64
+#define LCD_SIZE 			  LCD_WIDTH*LCD_HEIGHT
 #define LCD_PAGENUM			  8
 
 void LcdBusy(void);
@@ -69,13 +70,7 @@ void LcdGoToXY(uint8_t col, uint8_t page);
 void LcdEnable(void);
 void LcdDisable(void);
 void LcdArrayOut(uint8_t *data);
-
-//
-//void LcdArrayConv(uint8_t *data, uint8_t *datao);
-
 void LcdArrayConv(uint16_t *data);
-
-//
 inline void LcdLineOut(uint8_t data, uint8_t page, uint8_t x);
 
 #endif
