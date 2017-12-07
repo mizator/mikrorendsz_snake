@@ -11,6 +11,7 @@ SNEK
 #include "platform.h"
 #include "lcd_lib/lcd_lib.h"
 #include "io_lib/io_lib.h"
+#include "font/font.h"
 
 #define MAP_WIDTH 34
 #define MAP_HEIGHT 22
@@ -47,6 +48,9 @@ void maplcdconv(uint16_t width, uint16_t height, uint16_t * map,
 				uint16_t lcdwidth, uint16_t lcdheight, uint16_t * framebuffer);
 
 inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint16_t * framebuffer);
+
+void printchar(uint8_t row, uint8_t col, uint16_t * array, char ch);
+void printstring(uint8_t row, uint8_t col, uint16_t * array, char * string);
 
 uint8_t setlevel(uint8_t input);
 
@@ -190,6 +194,14 @@ while(1){
 					 //TODO game over text
 
 					 running = 0;
+					 printstring(26, 24, framebuffer, "Game over!");
+					 printstring(35, 37, framebuffer, "Score:");
+
+
+
+					 //printstring(4, 30, framebuffer, "");
+					 LcdArrayConv(framebuffer);
+					 while (NavswR() != PUSH );
 					 break;
 				 }
 
@@ -339,6 +351,35 @@ uint8_t setlevel(uint8_t input){
 	}
 
 	return ret;
+}
+
+void printchar(uint8_t row, uint8_t col, uint16_t * array, char ch) { // print character to framebuffer
+	unsigned char buf[5];
+	uint8_t i, b;
+
+	for (i = 0; i < 5; i++)	{
+		buf[i] = font5x8[5*ch + i]; // read from character font array
+	}
+
+	for (i = 0; i < 5; i++)	{
+		for (b = 0; b < 8; b++) {
+			array[row*LCD_WIDTH + b*LCD_WIDTH + col + i] = (buf[i] & 1<<b); // copy character to framebuffer
+		}
+	}
+
+	for (b = 0; b < 8; b++) {
+		array[row*LCD_WIDTH + b*LCD_WIDTH + col + 5] = 0; // clear screen between characters (1 vertical line)
+	}
+}
+
+void printstring(uint8_t row, uint8_t col, uint16_t * array, char * string) { // print string to framebuffer
+	unsigned char buf;
+	while(*string != 0) {
+		buf = *string;
+		printchar(row,col,array, buf - 32);
+		col += 6; // 1 empty line between characters
+		string++;
+	}
 }
 
 void TimerInit(void){
