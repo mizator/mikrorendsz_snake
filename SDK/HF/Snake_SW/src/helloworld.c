@@ -53,10 +53,7 @@ void printchar(uint8_t row, uint8_t col, uint8_t * array, char ch);
 void printstring(uint8_t row, uint8_t col, uint8_t * array, char * string);
 void printnum(uint8_t row, uint8_t col, uint8_t * array, char * num);
 void num2string(char num, char * string);
-
-uint8_t setlevel(uint8_t input);
-
-
+uint8_t getmsb(uint8_t num);
 
 void timer_int_handler(void *instance_Ptr)
 {
@@ -122,8 +119,8 @@ while(1){
 	dummy64 = XTmrCtr_GetTimerCounterReg(XPAR_AXI_TIMER_0_BASEADDR,0);
 	srand(dummy64); // random init
 
-	level = DipswR();
-	update = setlevel(level);
+	level = getmsb(DipswR());
+	update = 8 - level;
 
 	// place food
 	uint8_t almacheck;
@@ -182,7 +179,7 @@ while(1){
 			while(update);
 
 			midbutton = 0;
-			level = DipswR();
+			level = getmsb(DipswR());
 			update = 0;
 		}
 
@@ -193,22 +190,11 @@ while(1){
 					running = 0;
 					printstring(26, 24, framebuffer, "Game over!");
 					uint8_t printpos = 33;
-					char scorebuf[4];
+					char scorebuf[5];
 					int16_t score = snake_size - SNAKESIZE_START;
-
 					// print the score
-					if (score > 999) {
-						num2string(score / 1000 , &scorebuf[0]);
-						score = score % 1000;
-						num2string(score / 100 , &scorebuf[1]);
-						score = score % 100;
-						num2string(score / 10 , &scorebuf[2]);
-						num2string(score % 10 , &scorebuf[3]);
-						scorebuf[4] = 0;
-						printpos = 23;
 
-					}
-					else if(score > 99) {
+					if(score > 99) {
 						num2string(score / 100 , &scorebuf[0]);
 						score = score % 100;
 						num2string(score / 10 , &scorebuf[1]);
@@ -246,7 +232,7 @@ while(1){
 
 							placealma(snake);
 
-							if ((snake_size - SNAKESIZE_START) % LVLTHR == 0){ //increase level after LVLTHR points
+							if ((snake_size - SNAKESIZE_START) % LVLTHR == 0 && (snake_size - SNAKESIZE_START) > 0){ //increase level after LVLTHR points
 								if (level < 8) {
 									level++;
 								}
@@ -255,7 +241,7 @@ while(1){
 
 					maplcdconv(MAP_WIDTH, MAP_HEIGHT, snake, LCD_WIDTH, LCD_HEIGHT, framebuffer);
 					LcdArrayConv(framebuffer);
-					update = setlevel(level);	//set delay
+					update = 8 - level;	//set delay
 			}
 		}
 
@@ -343,7 +329,7 @@ void maplcdconv(uint16_t width, uint16_t height, uint16_t * map,
 	}
 }
 
-inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint8_t * framebuffer){ // draw the other 9 pixels around the middle coordinate
+inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint8_t * framebuffer){ // draw the other 8 pixels around the middle coordinate
 	uint16_t x, y;
 	for (y = loc_y - 1; y <= loc_y + 1; y++){
 		for (x = loc_x - 1; x <= loc_x + 1; x++){
@@ -364,22 +350,6 @@ uint8_t almagen(uint16_t * map){ // generate food
 
 void placealma(uint16_t * map){ // place generated food
 	map[alma_y*MAP_WIDTH + alma_x] = snake_size;
-}
-
-uint8_t setlevel(uint8_t input){
-	uint8_t ret = 0;
-	switch(input){
-		case 0: ret = 10;	break;
-		case 1: ret = 8;	break;
-		case 3: ret = 7;	break;
-		case 4: ret = 6;	break;
-		case 5: ret = 4;	break;
-		case 6: ret = 2;	break;
-		case 7: ret = 1;	break;
-		case 8: ret = 0;	break;
-	}
-
-	return ret;
 }
 
 void printchar(uint8_t row, uint8_t col, uint8_t * array, char ch) { // print character to framebuffer
@@ -413,6 +383,16 @@ void printstring(uint8_t row, uint8_t col, uint8_t * array, char * string) { // 
 
 void num2string(char num, char * string) {
 	*string = num + 48 ;
+}
+
+uint8_t getmsb(uint8_t num) {
+	uint8_t shift;
+	for (shift = 8; shift > 0; shift--) {
+		if(num & (0x01 << (shift-1))) {
+			return shift;
+		}
+	}
+	return 0;
 }
 
 void TimerInit(void){
