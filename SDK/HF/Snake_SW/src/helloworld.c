@@ -51,6 +51,8 @@ inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint16_t *
 
 void printchar(uint8_t row, uint8_t col, uint16_t * array, char ch);
 void printstring(uint8_t row, uint8_t col, uint16_t * array, char * string);
+void printnum(uint8_t row, uint8_t col, uint16_t * array, char * num);
+void num2string(char num, char * string);
 
 uint8_t setlevel(uint8_t input);
 
@@ -93,6 +95,12 @@ int main()
     	return 0;
     }
     else print("map OK\r\n");
+
+
+    /*
+    uint16_t framebuffer[LCD_SIZE * sizeof(uint16_t)];
+    uint16_t snake[MAPSIZE * sizeof(uint16_t)];
+    */
 
 
 
@@ -190,19 +198,49 @@ while(1){
 
 			if(update == 0 && midbutton == 0) {
 				 if (snakecheck(snake) != 0) { //collision detected, game over
-					 //TODO show highscore
-					 //TODO game over text
+					running = 0;
+					printstring(26, 24, framebuffer, "Game over!");
+					uint8_t printpos = 33;
+					char scorebuf[4];
+					int16_t score = snake_size - SNAKESIZE_START;
 
-					 running = 0;
-					 printstring(26, 24, framebuffer, "Game over!");
-					 printstring(35, 37, framebuffer, "Score:");
+					// print the score
+					if (score > 999) {
+						num2string(score / 1000 , &scorebuf[0]);
+						score = score % 1000;
+						num2string(score / 100 , &scorebuf[1]);
+						score = score % 100;
+						num2string(score / 10 , &scorebuf[2]);
+						num2string(score % 10 , &scorebuf[3]);
+						scorebuf[4] = 0;
+						printpos = 23;
 
+					}
+					else if(score > 99) {
+						num2string(score / 100 , &scorebuf[0]);
+						score = score % 100;
+						num2string(score / 10 , &scorebuf[1]);
+						num2string(score % 10 , &scorebuf[2]);
+						scorebuf[3] = 0;
+						printpos = 26;
+					}
+					else if(score > 9){
+						num2string(score / 10 , &scorebuf[0]);
+						num2string(score % 10 , &scorebuf[1]);
+						scorebuf[2] = 0;
+						printpos = 29;
+					}
+					else {
+						num2string(score, &scorebuf[0]);
+						scorebuf[1] = 0;
+						printpos = 32;
+					}
 
-
-					 //printstring(4, 30, framebuffer, "");
-					 LcdArrayConv(framebuffer);
-					 while (NavswR() != PUSH );
-					 break;
+					printstring(35, printpos, framebuffer, "Score:");
+					printstring(35, printpos + 36, framebuffer, scorebuf);
+					LcdArrayConv(framebuffer);
+					while (NavswR() != PUSH );
+					break;
 				 }
 
 					if (!snake_grow) {	//food not picked up
@@ -212,7 +250,6 @@ while(1){
 					else { //food picked up
 						do {
 							almacheck = almagen(snake);
-
 							} while (almacheck);
 
 							placealma(snake);
@@ -380,6 +417,10 @@ void printstring(uint8_t row, uint8_t col, uint16_t * array, char * string) { //
 		col += 6; // 1 empty line between characters
 		string++;
 	}
+}
+
+void num2string(char num, char * string) {
+	*string = num + 48 ;
 }
 
 void TimerInit(void){
