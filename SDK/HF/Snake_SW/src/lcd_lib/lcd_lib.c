@@ -19,7 +19,7 @@ inline void LcdBusy(void){
 	uint32_t reg;
 	do{
 		reg = LCD_STATUSREG;
-	} while (reg & BUSY_REG(1)); 					// Check busy flag
+	} while (reg & BUSY_REG(1));
 }
 
 inline uint32_t LcdCntrl(uint32_t cntrl){
@@ -85,9 +85,9 @@ void LcdInit(void)
 						0xA6,	// Inverz kijelzes 			Az inverz megjelenites tiltasa
 						0xA2,	// LCD bias beallitas		1/9 LCD bias
 						0x2F,	// Tapellatas vezerles		A tapellatas bekapcsolasa
-						0x27,	// Tapellatas vezerles		A kontraszt beallitasa
+						0x24,	// Tapellatas vezerles		A kontraszt beallitasa
 						0x81,	// VEV beallitas			A kontraszt beallitasa
-						0x10,	// VEV beallitas			A kontraszt beallitasa
+						0x2C,	// VEV beallitas			A kontraszt beallitasa
 						0xFA,	// APC0 regiszter irasa		Homerseklet kompenzacio
 						0x90,	// APC0 regiszter irasa		Homerseklet kompenzacio
 						0xAF,	// Kijelzo engedelyezes		A megjelenites bekapcsolasa
@@ -140,25 +140,8 @@ inline void LcdLineOut(uint8_t data, uint8_t page, uint8_t x){
 	LcdGoToXY(x,page);
 	LcdData(data);
 }
-/*void LcdArrayConv(uint8_t *data){
-	uint8_t x,y,b;
-	uint8_t lcd_array[LCD_WIDTH*LCD_PAGENUM];
 
-	for(y = 0; y < LCD_HEIGHT; y++){
-		for(x = 0; x < LCD_WIDTH; x++){
-			for(b = 0; b < 8; b++){
-				lcd_array[(y/8)*LCD_WIDTH + x] |= (data[(y/8)*b*LCD_WIDTH+x]?1:0)<<b;
-			}
-		}
-	}
-	LcdArrayOut(lcd_array);
-}*/
-
-
-
-//without framebuffer
-
-void LcdArrayConv(uint16_t *data){
+void LcdArrayConv(uint8_t *data){
 	uint8_t y, x, bit;
 	uint8_t dataout = 0;
 
@@ -176,25 +159,3 @@ void LcdArrayConv(uint16_t *data){
 		}
 	}
 }
-
-
-//with framebuffer
-
-/*void LcdArrayConv(uint8_t *data, uint8_t *datao){
-	uint8_t y, x, bit;
-	uint8_t dataout = 0;
-
-	for(y = 0; y < LCD_PAGENUM; y++){
-		for (x = 0; x < LCD_WIDTH; x++){
-			for (bit = 0; bit < 8; bit++){
-				if (data[LCD_WIDTH*8*y+bit*LCD_WIDTH+x]){
-					dataout |= (1 << bit);
-				}
-				else {
-					dataout &= (~(1 << bit));
-				}
-			}
-			datao[y*LCD_WIDTH + x] = dataout;
-		}
-	}
-}*/

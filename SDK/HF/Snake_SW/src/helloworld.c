@@ -1,34 +1,5 @@
 /*
- * Copyright (c) 2009-2012 Xilinx, Inc.  All rights reserved.
- *
- * Xilinx, Inc.
- * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
- * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
- * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
- * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
- * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
- * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
- * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
- * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
- * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
- * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
- * AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- */
-
-/*
- * helloworld.c: simple test application
- *
- * This application configures UART 16550 to baud rate 9600.
- * PS7 UART (Zynq) is not initialized by this application, since
- * bootrom/bsp configures it to baud rate 115200
- *
- * ------------------------------------------------
- * | UART TYPE   BAUD RATE                        |
- * ------------------------------------------------
- *   uartns550   9600
- *   uartlite    Configurable only in HW design
- *   ps7_uart    115200 (configured by bootrom/bsp)
+SNEK
  */
 
 #include <stdio.h>
@@ -40,8 +11,11 @@
 #include "platform.h"
 #include "lcd_lib/lcd_lib.h"
 #include "io_lib/io_lib.h"
+#include "font/font.h"
 
-#define MAPSIZE LCD_WIDTH*LCD_HEIGHT
+#define MAP_WIDTH 34
+#define MAP_HEIGHT 22
+#define MAPSIZE MAP_WIDTH*MAP_HEIGHT
 #define SNAKESIZE_START 10
 #define LVLTHR 5
 
@@ -63,12 +37,22 @@ uint8_t snake_grow = 0;
 
 void TimerInit(void);
 
-void initmap(uint16_t * map);
+void drawframe(uint16_t width, uint16_t height, uint16_t * array);
+void drawframe2(uint16_t width, uint16_t height, uint8_t * array);
 void mapupdate(uint16_t * map);
 
 int8_t snakecheck(uint16_t * map);
 uint8_t almagen(uint16_t * map);
 void placealma(uint16_t * map);
+void maplcdconv(uint16_t width, uint16_t height, uint16_t * map,
+				uint16_t lcdwidth, uint16_t lcdheight, uint8_t * framebuffer);
+
+inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint8_t * framebuffer);
+
+void printchar(uint8_t row, uint8_t col, uint8_t * array, char ch);
+void printstring(uint8_t row, uint8_t col, uint8_t * array, char * string);
+void printnum(uint8_t row, uint8_t col, uint8_t * array, char * num);
+void num2string(char num, char * string);
 
 uint8_t setlevel(uint8_t input);
 
@@ -79,7 +63,7 @@ void timer_int_handler(void *instance_Ptr)
 	if (update != 0){
 	update--;
 	}
-	// a megszakítás jelzõbit törlése
+	// clear interrupt flag
 	unsigned long csr;
 	csr = XTmrCtr_GetControlStatusReg(XPAR_AXI_TIMER_0_BASEADDR, 0);
 	XTmrCtr_SetControlStatusReg(XPAR_AXI_TIMER_0_BASEADDR, 0, csr);
@@ -87,7 +71,6 @@ void timer_int_handler(void *instance_Ptr)
 
 int main()
 {
-
     init_platform();
     TimerInit();
 
@@ -95,38 +78,43 @@ int main()
 
     LcdInit();
 
-    //map array
+    uint8_t * framebuffer = NULL;
+    framebuffer = malloc(LCD_SIZE * sizeof(uint8_t));
+
+    if (framebuffer == NULL){
+    	print ("not enough free memory\r\n");
+    	return 0;
+    }
+    else print("framebuffer OK\r\n");
 
     uint16_t * snake = NULL;
     snake = malloc(MAPSIZE * sizeof(uint16_t));
 
     if (snake == NULL){
-    	print ("elcseszett\r\n");
+    	print ("not enough free memory\r\n");
     	return 0;
     }
-    else print("okeka\r\n");
-
+    else print("map OK\r\n");
 
 while(1){
 
-    initmap(snake);
+	drawframe2(LCD_WIDTH, LCD_HEIGHT, framebuffer);
+    drawframe(MAP_WIDTH, MAP_HEIGHT, snake);
 
-	headpos_x = 51;
-	headpos_y = 32;
+	headpos_x = MAP_WIDTH / 2;
+	headpos_y = MAP_HEIGHT / 2;
 	direction_x = 1;
 	direction_y = 0;
 	snake_size = SNAKESIZE_START;
 	uint8_t running = 1;
 	uint8_t midbutton = 0;
 	uint8_t level;
-
 	int64_t dummy64 = 0;
-
 	uint8_t dummy;
 
 	// initial snake
 	for (dummy = 0; dummy < snake_size; dummy++){
-		snake[headpos_y*LCD_WIDTH + headpos_x - dummy] = snake_size - dummy;
+		snake[headpos_y*MAP_WIDTH + headpos_x - dummy] = snake_size - dummy;
 	}
 
 	while(NavswR() != PUSH); // wait for buttonpress
@@ -140,13 +128,15 @@ while(1){
 	// place food
 	uint8_t almacheck;
 
-		do {
-		almacheck = almagen(snake);
-		} while (almacheck);
+	do {
+	almacheck = almagen(snake);
+	} while (almacheck);
 
-		placealma(snake);
+	placealma(snake);
 
-		LcdArrayConv(snake);
+	maplcdconv(MAP_WIDTH, MAP_HEIGHT, snake, LCD_WIDTH, LCD_HEIGHT, framebuffer);
+
+	LcdArrayConv(framebuffer);
 
 	// game cycle
 
@@ -198,24 +188,60 @@ while(1){
 
 
 
-			if(update == 0 && midbutton == 0){
+			if(update == 0 && midbutton == 0) {
+				 if (snakecheck(snake) != 0) { //collision detected, game over
+					running = 0;
+					printstring(26, 24, framebuffer, "Game over!");
+					uint8_t printpos = 33;
+					char scorebuf[4];
+					int16_t score = snake_size - SNAKESIZE_START;
 
-				 if (snakecheck(snake) != 0){ //collision detection
-					 //TODO pontszám kiírás
-					 //TODO szöveg
+					// print the score
+					if (score > 999) {
+						num2string(score / 1000 , &scorebuf[0]);
+						score = score % 1000;
+						num2string(score / 100 , &scorebuf[1]);
+						score = score % 100;
+						num2string(score / 10 , &scorebuf[2]);
+						num2string(score % 10 , &scorebuf[3]);
+						scorebuf[4] = 0;
+						printpos = 23;
 
-					 running = 0;
+					}
+					else if(score > 99) {
+						num2string(score / 100 , &scorebuf[0]);
+						score = score % 100;
+						num2string(score / 10 , &scorebuf[1]);
+						num2string(score % 10 , &scorebuf[2]);
+						scorebuf[3] = 0;
+						printpos = 26;
+					}
+					else if(score > 9){
+						num2string(score / 10 , &scorebuf[0]);
+						num2string(score % 10 , &scorebuf[1]);
+						scorebuf[2] = 0;
+						printpos = 29;
+					}
+					else {
+						num2string(score, &scorebuf[0]);
+						scorebuf[1] = 0;
+						printpos = 32;
+					}
 
+					printstring(35, printpos, framebuffer, "Score:");
+					printstring(35, printpos + 36, framebuffer, scorebuf);
+					LcdArrayConv(framebuffer);
+					while (NavswR() != PUSH );
+					break;
 				 }
 
-					if (!snake_grow){	//food not picked up
+					if (!snake_grow) {	//food not picked up
 						mapupdate(snake);
 					}
 
 					else { //food picked up
 						do {
 							almacheck = almagen(snake);
-
 							} while (almacheck);
 
 							placealma(snake);
@@ -227,8 +253,9 @@ while(1){
 							}
 					}
 
-				LcdArrayConv(snake); //write lcd
-				update = setlevel(level); //set delay
+					maplcdconv(MAP_WIDTH, MAP_HEIGHT, snake, LCD_WIDTH, LCD_HEIGHT, framebuffer);
+					LcdArrayConv(framebuffer);
+					update = setlevel(level);	//set delay
 			}
 		}
 
@@ -237,20 +264,34 @@ while(1){
 }
 
 
-void initmap(uint16_t * map){
-	int i;
-    for (i=0; i< (MAPSIZE);i++ ){
-    	if (i < LCD_WIDTH || (i % LCD_WIDTH) == 0 || i > MAPSIZE - LCD_WIDTH || (i % (LCD_WIDTH)) == 101){
-    		map[i] = 1;
-    	}
+void drawframe(uint16_t width, uint16_t height, uint16_t * array){	// draw frame on map (invisible, only for collision detection)
+	uint16_t i;
 
+    for (i=0; i < width * height;i++ ){
+    	if (i < width || (i % width) == 0 || i > width * height - width || (i % (width)) == width - 1){
+    		array[i] = 0xffff; // frame pixels have 0xff value for easy recognition (no value decrement on map update)
+    	}
     	else {
-    		map[i] = 0;
+    		array[i] = 0;
     	}
     }
 }
 
-int8_t snakecheck(uint16_t * map){
+void drawframe2(uint16_t width, uint16_t height, uint8_t * array){	// draw frame on the LCD
+	uint16_t i;
+    for (i=0; i < width * height; i++ ){
+    	if (i < 2*width - 1 || (i % width) < 3 || i > width * height - 2*width || (i % (width)) >= width - 3){
+    		array[i] = 0xff;
+    	}
+
+    	else {
+    		array[i] = 0;
+    	}
+    }
+}
+
+
+int8_t snakecheck(uint16_t * map){ // collision detection
 	uint8_t ret=1;
 
 	activedirection_x = direction_x;
@@ -259,17 +300,17 @@ int8_t snakecheck(uint16_t * map){
 	headpos_x = headpos_x + activedirection_x;
 	headpos_y = headpos_y + activedirection_y;
 
-	if (headpos_y == alma_y && headpos_x == alma_x){
+	if (headpos_y == alma_y && headpos_x == alma_x){ 	// ate food
 		snake_grow = 1;
 		snake_size += 1;
 		ret = 0;
 	}
-	else {
+	else { 												// no collision
 		snake_grow = 0;
 		ret = 0;
 	}
 
-	if (map[headpos_y*LCD_WIDTH + headpos_x] && snake_grow == 0){
+	if (map[headpos_y*MAP_WIDTH + headpos_x] && snake_grow == 0){	// collision detected
 		running = 0;
 		ret = -1;
 	}
@@ -277,32 +318,52 @@ int8_t snakecheck(uint16_t * map){
 return ret;
 }
 
-void mapupdate(uint16_t * map){
+void mapupdate(uint16_t * map){							// decrease all map element values by one (this makes the tail disappear)
 	int i;
 	for (i=0; i< (MAPSIZE);i++ ){
-	    	if (!(i < LCD_WIDTH || (i % LCD_WIDTH) == 0 || i > MAPSIZE - LCD_WIDTH || (i % (LCD_WIDTH)) == 101)){
-	    		if (i != alma_y*LCD_WIDTH + alma_x){
+	    	if (map[i] != 0xffff){ 						// if not part of the edge
+	    		if (i != alma_y*MAP_WIDTH + alma_x){ 	// if does not match the food position
 	    			if (map[i] != 0){
 	    				map[i] -= 1;
 	    			}
 	    		}
 	    	}
 	}
-	map[headpos_y*LCD_WIDTH + headpos_x] = snake_size;
+	map[headpos_y*MAP_WIDTH + headpos_x] = snake_size;	// give maximum value to the head
 }
 
-uint8_t almagen(uint16_t * map){
-	alma_x = 1 + (rand() % (LCD_WIDTH-1));
-	alma_y = 1 + (rand() % (LCD_HEIGHT-1));
+void maplcdconv(uint16_t width, uint16_t height, uint16_t * map,
+				uint16_t lcdwidth, uint16_t lcdheight, uint8_t * framebuffer){ // convert the small map to the LCD resolution
+	int x, y;
+	for (y = 1; y < height - 1; y++){
+		for (x = 1; x < width - 1; x++){
+			//framebuffer[(y*3*lcdwidth + 1 + 3*x] = map[y*width + x]; // only draws the middle points
+			drawpixel(1+3*x, y*3, map[y*width + x], framebuffer);
+		}
+	}
+}
 
-	if (map[alma_y*LCD_WIDTH + alma_x]){
+inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint8_t * framebuffer){ // draw the other 9 pixels around the middle coordinate
+	uint16_t x, y;
+	for (y = loc_y - 1; y <= loc_y + 1; y++){
+		for (x = loc_x - 1; x <= loc_x + 1; x++){
+			framebuffer[y * LCD_WIDTH + x] = value;
+		}
+	}
+}
+
+uint8_t almagen(uint16_t * map){ // generate food
+	alma_x = 1 + (rand() % (MAP_WIDTH-1));
+	alma_y = 1 + (rand() % (MAP_HEIGHT-1));
+
+	if (map[alma_y*MAP_WIDTH + alma_x]){
 		return 1;
 	}
 	else return 0;
 }
 
-void placealma(uint16_t * map){
-	map[alma_y*LCD_WIDTH + alma_x] = snake_size;
+void placealma(uint16_t * map){ // place generated food
+	map[alma_y*MAP_WIDTH + alma_x] = snake_size;
 }
 
 uint8_t setlevel(uint8_t input){
@@ -321,17 +382,50 @@ uint8_t setlevel(uint8_t input){
 	return ret;
 }
 
+void printchar(uint8_t row, uint8_t col, uint8_t * array, char ch) { // print character to framebuffer
+	unsigned char buf[5];
+	uint8_t i, b;
+
+	for (i = 0; i < 5; i++)	{
+		buf[i] = font5x8[5*ch + i]; // read from character font array
+	}
+
+	for (i = 0; i < 5; i++)	{
+		for (b = 0; b < 8; b++) {
+			array[row*LCD_WIDTH + b*LCD_WIDTH + col + i] = (buf[i] & 1<<b); // copy character to framebuffer
+		}
+	}
+
+	for (b = 0; b < 8; b++) {
+		array[row*LCD_WIDTH + b*LCD_WIDTH + col + 5] = 0; // clear screen between characters (1 vertical line)
+	}
+}
+
+void printstring(uint8_t row, uint8_t col, uint8_t * array, char * string) { // print string to framebuffer
+	unsigned char buf;
+	while(*string != 0) {
+		buf = *string;
+		printchar(row,col,array, buf - 32);
+		col += 6; // 1 empty line between characters
+		string++;
+	}
+}
+
+void num2string(char num, char * string) {
+	*string = num + 48 ;
+}
+
 void TimerInit(void){
-	//Megszakításkezelõ rutinok regisztrálása
+	// register interrupt routines
 	XIntc_RegisterHandler(
-			XPAR_MICROBLAZE_0_INTC_BASEADDR,                  	//INTC báziscíme
-			XPAR_MICROBLAZE_0_INTC_AXI_TIMER_0_INTERRUPT_INTR,  //Megszakítás azonosító
+			XPAR_MICROBLAZE_0_INTC_BASEADDR,
+			XPAR_MICROBLAZE_0_INTC_AXI_TIMER_0_INTERRUPT_INTR,  // timer interrupt
 			(XInterruptHandler)timer_int_handler,
 			NULL
 	);
 
-	// megszakítások engedélyezése
-	//A megszakítás vezérlõ konfigurálása.
+	// enable interrupts
+	// configure the handler
 	XIntc_MasterEnable(XPAR_MICROBLAZE_0_INTC_BASEADDR);
 	XIntc_EnableIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR,
 			XPAR_AXI_TIMER_0_INTERRUPT_MASK
