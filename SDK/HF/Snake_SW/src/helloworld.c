@@ -38,20 +38,20 @@ uint8_t snake_grow = 0;
 void TimerInit(void);
 
 void drawframe(uint16_t width, uint16_t height, uint16_t * array);
-void drawframe2(uint16_t width, uint16_t height, uint16_t * array);
+void drawframe2(uint16_t width, uint16_t height, uint8_t * array);
 void mapupdate(uint16_t * map);
 
 int8_t snakecheck(uint16_t * map);
 uint8_t almagen(uint16_t * map);
 void placealma(uint16_t * map);
 void maplcdconv(uint16_t width, uint16_t height, uint16_t * map,
-				uint16_t lcdwidth, uint16_t lcdheight, uint16_t * framebuffer);
+				uint16_t lcdwidth, uint16_t lcdheight, uint8_t * framebuffer);
 
-inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint16_t * framebuffer);
+inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint8_t * framebuffer);
 
-void printchar(uint8_t row, uint8_t col, uint16_t * array, char ch);
-void printstring(uint8_t row, uint8_t col, uint16_t * array, char * string);
-void printnum(uint8_t row, uint8_t col, uint16_t * array, char * num);
+void printchar(uint8_t row, uint8_t col, uint8_t * array, char ch);
+void printstring(uint8_t row, uint8_t col, uint8_t * array, char * string);
+void printnum(uint8_t row, uint8_t col, uint8_t * array, char * num);
 void num2string(char num, char * string);
 
 uint8_t setlevel(uint8_t input);
@@ -78,8 +78,8 @@ int main()
 
     LcdInit();
 
-    uint16_t * framebuffer = NULL;
-    framebuffer = malloc(LCD_SIZE * sizeof(uint16_t));
+    uint8_t * framebuffer = NULL;
+    framebuffer = malloc(LCD_SIZE * sizeof(uint8_t));
 
     if (framebuffer == NULL){
     	print ("not enough free memory\r\n");
@@ -95,14 +95,6 @@ int main()
     	return 0;
     }
     else print("map OK\r\n");
-
-
-    /*
-    uint16_t framebuffer[LCD_SIZE * sizeof(uint16_t)];
-    uint16_t snake[MAPSIZE * sizeof(uint16_t)];
-    */
-
-
 
 while(1){
 
@@ -277,7 +269,7 @@ void drawframe(uint16_t width, uint16_t height, uint16_t * array){	// draw frame
 
     for (i=0; i < width * height;i++ ){
     	if (i < width || (i % width) == 0 || i > width * height - width || (i % (width)) == width - 1){
-    		array[i] = 0xffff;
+    		array[i] = 0xffff; // frame pixels have 0xff value for easy recognition (no value decrement on map update)
     	}
     	else {
     		array[i] = 0;
@@ -285,11 +277,11 @@ void drawframe(uint16_t width, uint16_t height, uint16_t * array){	// draw frame
     }
 }
 
-void drawframe2(uint16_t width, uint16_t height, uint16_t * array){	// draw frame on the LCD
+void drawframe2(uint16_t width, uint16_t height, uint8_t * array){	// draw frame on the LCD
 	uint16_t i;
     for (i=0; i < width * height; i++ ){
     	if (i < 2*width - 1 || (i % width) < 3 || i > width * height - 2*width || (i % (width)) >= width - 3){
-    		array[i] = 0xffff;	// frame pixels have 0xffff value for easy recognition (no value decrement on map update)
+    		array[i] = 0xff;
     	}
 
     	else {
@@ -341,7 +333,7 @@ void mapupdate(uint16_t * map){							// decrease all map element values by one 
 }
 
 void maplcdconv(uint16_t width, uint16_t height, uint16_t * map,
-				uint16_t lcdwidth, uint16_t lcdheight, uint16_t * framebuffer){ // convert the small map to the LCD resolution
+				uint16_t lcdwidth, uint16_t lcdheight, uint8_t * framebuffer){ // convert the small map to the LCD resolution
 	int x, y;
 	for (y = 1; y < height - 1; y++){
 		for (x = 1; x < width - 1; x++){
@@ -351,7 +343,7 @@ void maplcdconv(uint16_t width, uint16_t height, uint16_t * map,
 	}
 }
 
-inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint16_t * framebuffer){ // draw the other 9 pixels around the middle coordinate
+inline void drawpixel(uint16_t loc_x, uint16_t loc_y, uint16_t value, uint8_t * framebuffer){ // draw the other 9 pixels around the middle coordinate
 	uint16_t x, y;
 	for (y = loc_y - 1; y <= loc_y + 1; y++){
 		for (x = loc_x - 1; x <= loc_x + 1; x++){
@@ -390,7 +382,7 @@ uint8_t setlevel(uint8_t input){
 	return ret;
 }
 
-void printchar(uint8_t row, uint8_t col, uint16_t * array, char ch) { // print character to framebuffer
+void printchar(uint8_t row, uint8_t col, uint8_t * array, char ch) { // print character to framebuffer
 	unsigned char buf[5];
 	uint8_t i, b;
 
@@ -409,7 +401,7 @@ void printchar(uint8_t row, uint8_t col, uint16_t * array, char ch) { // print c
 	}
 }
 
-void printstring(uint8_t row, uint8_t col, uint16_t * array, char * string) { // print string to framebuffer
+void printstring(uint8_t row, uint8_t col, uint8_t * array, char * string) { // print string to framebuffer
 	unsigned char buf;
 	while(*string != 0) {
 		buf = *string;
